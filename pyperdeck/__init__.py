@@ -7,15 +7,13 @@ from ._internals import Slot
 
 class Hyperdeck:
     """Blackmagic Design Hyperdeck Control Interface
-    """    
-    def __init__(self, ip: str) -> None:
-        """Connect and initialize Hyperdeck connecetion
 
-        Parameters
-        ----------
-        ip : str
-            Local IP Address of the Hyperdeck
-        """        
+    Parameters
+    ----------
+    ip : str
+        Local IP Address of the Hyperdeck
+    """    
+    def __init__(self, ip: str) -> None:     
         self.ip = ip
         self.connection = Telnet(ip, 9993)
 
