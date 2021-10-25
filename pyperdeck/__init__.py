@@ -40,6 +40,22 @@ class Hyperdeck:
         self.timeline_in = 0
         self.timeline_out = 0
 
+        # Configuration
+        self.audio_input = None
+        self.audio_mapping = 0
+        self.video_input = None
+        self.file_format = None
+        self.audio_codec = None
+        self.timecode_input = None
+        self.timecode_output = None
+        self.timecode_preference = None
+        self.timecode_preset = None
+        self.audio_input_channels = 0
+        self.record_trigger = None
+        self.record_prefix = None
+        self.append_timestamp = False
+        self.genlock_input_resync = False
+
         self._startup()
     
     def _startup(self) -> None:
@@ -93,6 +109,8 @@ class Hyperdeck:
             self._display_timecode(body)
         elif status[1] == 'playrange info':
             self._playrange_info(body)
+        elif status[1] == 'configuration':
+            self._configuration(body)
     
     def _connection_info(self, body: List[str]) -> None:
         for field in body:
@@ -171,6 +189,36 @@ class Hyperdeck:
                     self.timeline_out = int(value)
                 except ValueError:
                     self.timeline_out = 0
+    
+    def _configuration(self, body: List[str]) -> None:
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'audio input':
+                self.audio_input = value
+            elif prop == 'audio mapping':
+                self.audio_mapping = int(value)
+            elif prop == 'video input':
+                self.video_input = value
+            elif prop == 'file format':
+                self.file_format = value
+            elif prop == 'audio codec':
+                self.audio_codec = value
+            elif prop == 'timecode input':
+                self.timecode_input = value
+            elif prop == 'timecode output':
+                self.timecode_output = value
+            elif prop == 'timecode preference':
+                self.timecode_preference = value
+            elif prop == 'audio input channels':
+                self.audio_input_channels = int(value)
+            elif prop == 'record trigger':
+                self.record_trigger = value
+            elif prop == 'record prefix':
+                self.record_prefix = value
+            elif prop == 'append timestamp':
+                self.append_timestamp = value == 'true'
+            elif prop == 'genlock input resync':
+                self.genlock_input_resync = value == 'true'
 
     def _success_response_processor(self, status: Tuple[int, str], body: List[str]) -> None:
         if status[1] == 'slot info':
@@ -181,6 +229,8 @@ class Hyperdeck:
             self._transport_info(body)
         elif status[1] == 'playrange info':
             self._playrange_info(body)
+        elif status[1] == 'configuration':
+            self._configuration(body)
     
     def _device_info(self, body: List[str]) -> None:
         for field in body:
