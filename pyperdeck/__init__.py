@@ -60,6 +60,22 @@ class Hyperdeck:
     
     def _startup(self) -> None:
         self._send('device info')
+        self._send('configuration')
+        self._send('transport info')
+        self._send('playrange')
+        
+        self._notify('transport')
+        self._notify('display timecode')
+        self._notify('timeline position')
+        self._notify('playrange')
+        self._notify('slot')
+        self._notify('configuration')
+
+    def _notify(self, prop: str, enable: bool = True) -> None:
+        value = 'false'
+        if enable:
+            value = 'true'
+        self._send(f'notify: {prop}: {value}')
 
     def _reader(self) -> None:
         while True:
