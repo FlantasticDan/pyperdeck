@@ -3,7 +3,7 @@ from telnetlib import Telnet
 from threading import Thread
 from typing import List, Tuple, Dict
 
-from ._internals import Slot
+from ._internals import Slot, Timeline
 
 class Hyperdeck:
     """Blackmagic Design Hyperdeck Control Interface
@@ -41,7 +41,7 @@ class Hyperdeck:
         self.timecode = None
         self.video_format = None
         self.loop = False
-        self.timeline = 0
+        self.timeline_playhead = 0
         self.input_video_format = None
         self.dynamic_range = None
 
@@ -65,11 +65,15 @@ class Hyperdeck:
         self.append_timestamp = False
         self.genlock_input_resync = False
 
+        # Timeline
+        self.timeline = Timeline()
+
     def _startup(self) -> None:
         self._send('device info')
         self._send('configuration')
         self._send('transport info')
         self._send('playrange')
+        self._send('clips get')
         
         self._notify('transport')
         self._notify('display timecode')
@@ -187,7 +191,7 @@ class Hyperdeck:
             elif prop == 'loop':
                 self.loop = value == 'true'
             elif prop == 'timeline':
-                self.timeline = int(value)
+                self.timeline_playhead = int(value)
             elif prop == 'input video format':
                 self.input_video_format = value
             elif prop == 'dynamic range':
@@ -197,7 +201,7 @@ class Hyperdeck:
         for field in body:
             prop, value = field.split(': ')
             if prop == 'timeline position':
-                self.timeline = int(value)
+                self.timeline_playhead = int(value)
     
     def _display_timecode(self, body: List[str]) -> None:
         for field in body:
@@ -260,6 +264,8 @@ class Hyperdeck:
             self._playrange_info(body)
         elif status[1] == 'configuration':
             self._configuration(body)
+        elif status[1] == 'clips info':
+            self._clips_info(body)
     
     def _device_info(self, body: List[str]) -> None:
         for field in body:
@@ -278,7 +284,10 @@ class Hyperdeck:
         for slot in range(self.slot_count):
             self.slots[str(slot + 1)] = Slot(slot + 1)
             self._send(f'slot info: slot id: {slot + 1}')
-        
+    
+    def _clips_info(self, body: List[str]) -> None:
+        self.timeline._clip_info(body)
+
     def reboot(self) -> None:
         """Reboot the Hyperdeck, reconnection happens automatically.
         """

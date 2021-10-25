@@ -32,3 +32,26 @@ class Slot:
                 self.video_format = value
             elif prop == 'blocked':
                 self.blocked = value == 'true'
+
+class Timeline:
+    def __init__(self) -> None:
+        self.clips = []
+    
+    def _clip_info(self, body: List[str]) -> None:
+        self.clips = []
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'clip count':
+                continue
+            self.clips.append(TimelineClip(int(prop), value))
+
+class TimelineClip:
+    def __init__(self, clip_id: int, entry: str) -> None:
+        self.clip_id = clip_id
+        self.name = ''
+        self.start_timecode = ''
+        self.duration = ''
+
+        self.duration = entry[-11:]
+        self.start_timecode = entry[-23:-12]
+        self.name = entry[:-24]

@@ -9,6 +9,13 @@ Python interface for Blackmagic Design Hyperdeck recorders.
    :maxdepth: 2
    :caption: Contents:
 
+   utilities
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Low Level Objects:
+
+   internals
 
 
 Indices and tables
