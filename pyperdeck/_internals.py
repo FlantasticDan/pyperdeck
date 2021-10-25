@@ -1,7 +1,16 @@
 from typing import List
 
 class Slot:
+    """Low Level Hyperdeck Media Slot Interface
+    """    
     def __init__(self, id: int) -> None:
+        """Initialize a Media Slot Interface
+
+        Parameters
+        ----------
+        id : int
+            Hyperdeck Hardware Slot ID
+        """        
         self.id = id
 
         self.status = None

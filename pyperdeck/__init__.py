@@ -1,3 +1,4 @@
+import time
 from telnetlib import Telnet
 from threading import Thread
 from typing import List, Tuple, Dict
@@ -5,7 +6,17 @@ from typing import List, Tuple, Dict
 from ._internals import Slot
 
 class Hyperdeck:
+    """Blackmagic Design Hyperdeck Control Interface
+    """    
     def __init__(self, ip: str) -> None:
+        """Connect and initialize Hyperdeck connecetion
+
+        Parameters
+        ----------
+        ip : str
+            Local IP Address of the Hyperdeck
+        """        
+        self.ip = ip
         self.connection = Telnet(ip, 9993)
 
         self._reader_thread = Thread(target=self._reader)
@@ -56,8 +67,6 @@ class Hyperdeck:
         self.append_timestamp = False
         self.genlock_input_resync = False
 
-        self._startup()
-    
     def _startup(self) -> None:
         self._send('device info')
         self._send('configuration')
@@ -79,12 +88,17 @@ class Hyperdeck:
 
     def _reader(self) -> None:
         while True:
-            message = self.connection.read_until(bytes('\r\n', 'ascii'))
-            if message.decode('ascii')[-3] == ':':
-                message += self.connection.read_until(bytes('\r\n\r\n', 'ascii'))
-                self._decode_message(message)
-            else:
-                self._decode_response(message)
+            try:
+                message = self.connection.read_until(bytes('\r\n', 'ascii'))
+                if message.decode('ascii')[-3] == ':':
+                    message += self.connection.read_until(bytes('\r\n\r\n', 'ascii'))
+                    self._decode_message(message)
+                else:
+                    self._decode_response(message)
+            except Exception:
+                time.sleep(3)
+                self.connection = Telnet(self.ip, 9993)
+                self._send('ping')
     
     def _send(self, command: str) -> None:
         self.connection.write(bytes(command + '\r\n', 'ascii'))
@@ -135,6 +149,7 @@ class Hyperdeck:
                 self.protocol_version = value
             elif prop == 'model':
                 self.model = value
+        self._startup()
     
     def _slot_info(self, body: List[str]) -> None:
         slot = None
@@ -266,3 +281,8 @@ class Hyperdeck:
             self.slots[str(slot + 1)] = Slot(slot + 1)
             self._send(f'slot info: slot id: {slot + 1}')
         
+    def reboot(self) -> None:
+        """Reboot the Hyperdeck, reconnection happens automatically.
+        """
+        self._send('reboot')
+    
