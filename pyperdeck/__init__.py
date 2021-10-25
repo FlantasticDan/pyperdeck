@@ -11,8 +11,6 @@ class Hyperdeck:
         self._reader_thread = Thread(target=self._reader)
         self._reader_thread.start()
 
-        self._send('device info')
-
         # Device Info
         self.protocol_version = None
         self.model = None
@@ -23,7 +21,30 @@ class Hyperdeck:
         # Slot Info
         self.slots = {} # type: Dict[str, Slot]
         self.remaining_time = 0 # recording time remaining in seconds
+
+        # Transport Info
+        self.status = None
+        self.speed = 0
+        self.slot_id = 0
+        self.clip_id = 0
+        self.single_clip = False
+        self.display_timecode = None
+        self.timecode = None
+        self.video_format = None
+        self.loop = False
+        self.timeline = 0
+        self.input_video_format = None
+        self.dynamic_range = None
+
+        # Playrange Info
+        self.timeline_in = 0
+        self.timeline_out = 0
+
+        self._startup()
     
+    def _startup(self) -> None:
+        self._send('device info')
+
     def _reader(self) -> None:
         while True:
             message = self.connection.read_until(bytes('\r\n', 'ascii'))
@@ -64,6 +85,14 @@ class Hyperdeck:
             self._connection_info(body)
         elif status[1] == 'slot info':
             self._slot_info(body)
+        elif status[1] == 'transport info':
+            self._transport_info(body)
+        elif status[1] == 'timeline position':
+            self._timeline_position(body)
+        elif status[1] == 'display timecode':
+            self._display_timecode(body)
+        elif status[1] == 'playrange info':
+            self._playrange_info(body)
     
     def _connection_info(self, body: List[str]) -> None:
         for field in body:
@@ -89,11 +118,69 @@ class Hyperdeck:
             remaining_time += slot.recording_time
         self.remaining_time = remaining_time
     
+    def _transport_info(self, body: List[str]) -> None:
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'status':
+                self.status = value
+            elif prop == 'speed':
+                self.speed = int(value)
+            elif prop == 'slot id':
+                self.slot_id = int(value)
+            elif prop == 'clip id':
+                self.clip_id = int(value)
+            elif prop == 'single clip':
+                self.single_clip = value == 'true'
+            elif prop == 'display timecode':
+                self.display_timecode = value
+            elif prop == 'timecode':
+                self.timecode = value
+            elif prop == 'video format':
+                self.video_format = value
+            elif prop == 'loop':
+                self.loop = value == 'true'
+            elif prop == 'timeline':
+                self.timeline = int(value)
+            elif prop == 'input video format':
+                self.input_video_format = value
+            elif prop == 'dynamic range':
+                self.dynamic_range = value
+    
+    def _timeline_position(self, body: List[str]) -> None:
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'timeline position':
+                self.timeline = int(value)
+    
+    def _display_timecode(self, body: List[str]) -> None:
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'display timecode':
+                self.display_timecode = value
+
+    def _playrange_info(self, body: List[str]) -> None:
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'timeline in':
+                try:
+                    self.timeline_in = int(value)
+                except ValueError:
+                    self.timeline_in = 0
+            elif prop == 'timeline out':
+                try:
+                    self.timeline_out = int(value)
+                except ValueError:
+                    self.timeline_out = 0
+
     def _success_response_processor(self, status: Tuple[int, str], body: List[str]) -> None:
         if status[1] == 'slot info':
             self._slot_info(body)
         elif status[1] == 'device info':
             self._device_info(body)
+        elif status[1] == 'transport info':
+            self._transport_info(body)
+        elif status[1] == 'playrange info':
+            self._playrange_info(body)
     
     def _device_info(self, body: List[str]) -> None:
         for field in body:
