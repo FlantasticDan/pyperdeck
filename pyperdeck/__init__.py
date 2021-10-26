@@ -122,8 +122,8 @@ class Hyperdeck:
             self._asynchronous_response_processor(status, body)
         elif 200 < status[0] <= 299:
             self._success_response_processor(status, body)
-        print(status)
-        print(body)
+        # print(status)
+        # print(body)
         
     def _get_status_of_message(self, status_line: str) -> Tuple[int, str]:
         blocks = status_line.rstrip(':').split(' ', maxsplit=1)
@@ -306,6 +306,52 @@ class Hyperdeck:
                 slot = value
                 break
         self.slots[slot]._disk_list(body)
+
+    def preview(self) -> None:
+        """Set the Hyperdeck to preview mode, which allows for clips to be recorded.
+        """
+        self._send('preview: enable: true')
+    
+    def output(self) -> None:
+        """Set the Hyperdeck to output mode, which allows for the playback of clips on the timeline.
+        """
+        self._send('preview: enable: false')
+    
+    def record(self, name: str = None) -> None:
+        """Record a clip to the active slot.
+
+        Parameters
+        ----------
+        name : str, optional
+            File name of the recorded clip, otherwise generated in sequence by the Hyperdeck, by default `None`
+        """        
+        _record = 'record'
+        if name:
+            _record = f'record: name: {name}'
+        
+        self._send(_record)
+    
+    def play(self, speed: int = 100, loop: bool = False, single_clip: bool = False) -> None:
+        """Play the timeline from the current timecode.
+
+        Parameters
+        ----------
+        speed : int, optional
+            Speed of playback as a percentage (range `-5000` to  `5000`), by default `100`
+        loop : bool, optional
+            Loop playback at the end of playback range (`True`) or stop-at-end (`False`), by default `False`
+        single_clip : bool, optional
+            Playback only current clip (`True`) or all clips (`False`), by default `False`
+        """
+        _speed = f'speed: {speed}'
+        _loop = f'loop: false'
+        if loop:
+            _loop = f'loop: true'
+        _single_clip = f'single clip: false'
+        if single_clip:
+            _single_clip = f'single clip: true'
+
+        self._send(f'play: {_speed} {_loop} {_single_clip}')
 
     def reboot(self) -> None:
         """Reboot the Hyperdeck, reconnection happens automatically.
