@@ -27,3 +27,8 @@ Clips
     :members:
     :private-members:
     :undoc-members:
+
+.. autoclass:: DiskClip
+    :members:
+    :private-members:
+    :undoc-members:

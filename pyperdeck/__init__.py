@@ -273,6 +273,8 @@ class Hyperdeck:
             self._configuration(body)
         elif status[1] == 'clips info':
             self._clips_info(body)
+        elif status[1] == 'disk list':
+            self._disk_list(body)
     
     def _device_info(self, body: List[str]) -> None:
         for field in body:
@@ -291,9 +293,19 @@ class Hyperdeck:
         for slot in range(self.slot_count):
             self.slots[str(slot + 1)] = Slot(slot + 1)
             self._send(f'slot info: slot id: {slot + 1}')
+            self._send(f'disk list: slot id: {slot + 1}')
     
     def _clips_info(self, body: List[str]) -> None:
         self.timeline._clip_info(body, self.framerate)
+
+    def _disk_list(self, body: List[str]) -> None:
+        slot = None
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'slot id':
+                slot = value
+                break
+        self.slots[slot]._disk_list(body)
 
     def reboot(self) -> None:
         """Reboot the Hyperdeck, reconnection happens automatically.
