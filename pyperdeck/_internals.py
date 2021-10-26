@@ -1,5 +1,7 @@
 from typing import List
 
+from .timecode import Timecode
+
 class Slot:
     """Low Level Hyperdeck Media Slot Interface
     """    
@@ -36,22 +38,30 @@ class Slot:
 class Timeline:
     def __init__(self) -> None:
         self.clips = []
+        self.framerate = 0
+        self.duration = 0
     
-    def _clip_info(self, body: List[str]) -> None:
+    def _clip_info(self, body: List[str], framerate: int) -> None:
         self.clips = []
+        self.framerate = framerate
         for field in body:
             prop, value = field.split(': ')
             if prop == 'clip count':
                 continue
-            self.clips.append(TimelineClip(int(prop), value))
+            clip = TimelineClip(int(prop), value, framerate)
+            self.duration += clip.duration_frames
+            self.clips.append(clip)
 
 class TimelineClip:
-    def __init__(self, clip_id: int, entry: str) -> None:
+    def __init__(self, clip_id: int, entry: str, framerate: int) -> None:
         self.clip_id = clip_id
         self.name = ''
         self.start_timecode = ''
         self.duration = ''
+        self.duration_frames = 0
 
         self.duration = entry[-11:]
         self.start_timecode = entry[-23:-12]
         self.name = entry[:-24]
+
+        self.duration_frames = Timecode(self.duration, framerate).frame_count

@@ -4,6 +4,7 @@ from threading import Thread
 from typing import List, Tuple, Dict
 
 from ._internals import Slot, Timeline
+from .timecode import parse_framerate
 
 class Hyperdeck:
     """Blackmagic Design Hyperdeck Control Interface
@@ -35,11 +36,13 @@ class Hyperdeck:
         self.status = None
         self.speed = 0
         self.slot_id = 0
+        self.active_slot = 0
         self.clip_id = 0
         self.single_clip = False
         self.display_timecode = None
         self.timecode = None
         self.video_format = None
+        self.framerate = 0
         self.loop = False
         self.timeline_playhead = 0
         self.input_video_format = None
@@ -178,6 +181,9 @@ class Hyperdeck:
                 self.speed = int(value)
             elif prop == 'slot id':
                 self.slot_id = int(value)
+            elif prop == 'active slot':
+                self.active_slot = int(value)
+                self._send('clips get')
             elif prop == 'clip id':
                 self.clip_id = int(value)
             elif prop == 'single clip':
@@ -188,6 +194,7 @@ class Hyperdeck:
                 self.timecode = value
             elif prop == 'video format':
                 self.video_format = value
+                self.framerate = parse_framerate(self.video_format)
             elif prop == 'loop':
                 self.loop = value == 'true'
             elif prop == 'timeline':
@@ -200,7 +207,7 @@ class Hyperdeck:
     def _timeline_position(self, body: List[str]) -> None:
         for field in body:
             prop, value = field.split(': ')
-            if prop == 'timeline position':
+            if prop == 'timeline':
                 self.timeline_playhead = int(value)
     
     def _display_timecode(self, body: List[str]) -> None:
@@ -286,7 +293,7 @@ class Hyperdeck:
             self._send(f'slot info: slot id: {slot + 1}')
     
     def _clips_info(self, body: List[str]) -> None:
-        self.timeline._clip_info(body)
+        self.timeline._clip_info(body, self.framerate)
 
     def reboot(self) -> None:
         """Reboot the Hyperdeck, reconnection happens automatically.
