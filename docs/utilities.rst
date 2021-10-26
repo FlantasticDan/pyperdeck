@@ -10,3 +10,8 @@ Helper functions for working with Timecode Data
 .. currentmodule:: pyperdeck.timecode
 
 .. autofunction:: parse_framerate
+
+.. autofunction:: format_timecode
+
+.. autoclass:: Timecode
+    :members:
