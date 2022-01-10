@@ -1,4 +1,6 @@
 import time
+import logging
+from os import linesep
 from telnetlib import Telnet
 from threading import Thread
 from typing import List, Tuple, Dict
@@ -17,6 +19,7 @@ class Hyperdeck:
     def __init__(self, ip: str) -> None:     
         self.ip = ip
         self.connection = Telnet(ip, 9993)
+        self.logger = logging.getLogger(__name__)
 
         self._reader_thread = Thread(target=self._reader)
         self._reader_thread.start()
@@ -100,30 +103,34 @@ class Hyperdeck:
                     self._decode_message(message)
                 else:
                     self._decode_response(message)
-            except Exception:
+            except Exception as e:
+                self.logger.error(e)
                 time.sleep(3)
                 self.connection = Telnet(self.ip, 9993)
                 self._send('ping')
     
     def _send(self, command: str) -> None:
+        self.logger.debug(f'Sending Message: [{command.replace(linesep, "-")}]')
         self.connection.write(bytes(command + '\r\n', 'ascii'))
     
     def _decode_response(self, message: bytes) -> None:
         response = message.decode('ascii').rstrip('\r\n')
         status = self._get_status_of_message(response)
-        print(status)
+        if status[0] < 200:
+            self.logger.warning(f'Failure Response Recieved: [{response.replace(linesep, "//")}]')
+        else:
+            self.logger.debug(f'Response Recieved: [{response.replace(linesep, "//")}]')
 
     def _decode_message(self, message: bytes) -> None:
         msg = message.decode('ascii').rstrip('\r\n\r\n')
         lines = msg.split('\r\n')
         status = self._get_status_of_message(lines[0])
         body = lines[1:]
+        self.logger.debug(f'Recieved Message: [{msg.replace(linesep, "//")}]')
         if 500 <= status[0] <= 599:
             self._asynchronous_response_processor(status, body)
         elif 200 < status[0] <= 299:
             self._success_response_processor(status, body)
-        # print(status)
-        # print(body)
         
     def _get_status_of_message(self, status_line: str) -> Tuple[int, str]:
         blocks = status_line.rstrip(':').split(' ', maxsplit=1)
@@ -294,7 +301,9 @@ class Hyperdeck:
             self.slots[str(slot + 1)] = Slot(slot + 1)
             self._send(f'slot info: slot id: {slot + 1}')
             self._send(f'disk list: slot id: {slot + 1}')
-    
+
+        self.logger.info(f'Connected to {self.model} @ {self.ip}, software version {self.software_version}, protocol version {self.protocol_version}')
+
     def _clips_info(self, body: List[str]) -> None:
         self.timeline._clip_info(body, self.framerate)
 
