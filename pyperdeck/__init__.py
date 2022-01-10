@@ -594,6 +594,16 @@ class Hyperdeck:
             self._send(f'goto: timecode: -{timecode}')
         else:
             self._send(f'goto: timecode: +{timecode}')
+    
+    def shuttle(self, speed: int) -> None:
+        """Shuttle the playhead along the timeline.
+
+        Parameters
+        ----------
+        speed : int
+            Speed (as a percentage of time) at which the playhead will move, most Hyperdeck models support values between -5000 and 5000.
+        """
+        self._send(f'shuttle: speed: {speed}')
 
     def configure(
             self,
