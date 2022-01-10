@@ -483,6 +483,64 @@ class Hyperdeck:
         """
         self._send('playrange clear')
 
+    def go_to_clip(self, clip_id: int) -> None:
+        """Place timeline playhead at the start of a clip in timeline based on clip id.
+
+        Parameters
+        ----------
+        clip_id : int
+            Clip ID in the timeline, the first clip is 1, the last clip is a special value, -1.
+        """
+        if clip_id == -1:
+            self._send('goto: clip id: end')
+        elif clip_id == 0:
+            self._send('goto: clip id: start')
+        else:
+            self._send(f'goto: clip id: {clip_id}')
+
+    def move_between_clips(self, count: int) -> None:
+        """Place timeline playhead at the start of a clip a relative number of clips away from the current clip.
+
+        Parameters
+        ----------
+        count : int
+            Number of clips to move, positive is forward in time, negative is backwards in time.
+        """
+        if count > 0:
+            self._send(f'goto: clip id: +{count}')
+        else:
+            count *= -1
+            self._send(f'goto: clip id: -{count}')
+
+    def go_within_clip(self, frame: int) -> None:
+        """Place the timeline playhead at a specific frame within the current clip.
+
+        Parameters
+        ----------
+        frame : int
+            The frame number to place the playhead at, the first frame of the clip is frame 1, the last frame is a special value, -1.
+        """
+        if frame < 0:
+            self._send('goto: clip: end')
+        elif frame == 0:
+            self._send('goto: clip: start')
+        else:
+            self._send(f'goto: clip: {frame}')
+
+    def move_within_clip(self, frames: int) -> None:
+        """Place the timeline playhead a number of frames offset from it's current position within the current clip.
+
+        Parameters
+        ----------
+        frames : int
+            Number of frames to move the playhead, positive is forward in time, negative is backward in time.
+        """
+        if frames > 0:
+            self._send(f'goto: clip: +{frames}')
+        else:
+            frames *= -1
+            self._send(f'goto: clip: -{frames}')
+
     def configure(
             self,
             *,
