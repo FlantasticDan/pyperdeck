@@ -540,6 +540,60 @@ class Hyperdeck:
         else:
             frames *= -1
             self._send(f'goto: clip: -{frames}')
+    
+    def go_within_timeline(self, frame: int) -> None:
+        """Place the timeline playhead at a specific frame on the timeline.
+
+        Parameters
+        ----------
+        frame : int
+            The frame number to place the playhead at, the first frame of the timeline is frame 1, the last frame is a special value, -1.
+        """
+        if frame < 0:
+            self._send('goto: timeline: end')
+        elif frame == 0:
+            self._send('goto: timeline: start')
+        else:
+            self._send(f'goto: timeline: {frame}')
+    
+    def move_within_timeline(self, frames: int) -> None:
+        """Place the timeline playhead a number of frames offset from it's current position .
+
+        Parameters
+        ----------
+        frames : int
+            Number of frames to move the playhead, positive is forward in time, negative is backward in time.
+        """
+        if frames > 0:
+            self._send(f'goto: timeline: +{frames}')
+        else:
+            frames *= -1
+            self._send(f'goto: timeline: -{frames}')
+
+    def go_to_timecode(self, timecode: str) -> None:
+        """Place the timeline playhead at a specific timecode.
+
+        Parameters
+        ----------
+        timecode : str
+            Timecode to place the playhead at, the timeline starts at 00:00:00:00.
+        """
+        self._send(f'goto: timecode: {timecode}')
+    
+    def move_timecode(self, timecode: str, reverse: bool = False) -> None:
+        """Move the timeline playhead a duration from it's current position
+
+        Parameters
+        ----------
+        timecode : str
+            Timecode duration to move playhead, 00:00:00:00 would indicate no movement.
+        reverse : bool, optional
+            If true, move the playhead backward in time, by default False (forward in time)
+        """
+        if reverse:
+            self._send(f'goto: timecode: -{timecode}')
+        else:
+            self._send(f'goto: timecode: +{timecode}')
 
     def configure(
             self,
