@@ -382,6 +382,48 @@ class Hyperdeck:
 
         self._send(f'play: {_speed} {_loop} {_single_clip}')
 
+    def playrange_clip(self, clip_id: int, count: int = 1) -> None:
+        """Set timeline playrange based based on clip IDs and move playhead to the start.
+
+        Parameters
+        ----------
+        clip_id : int
+            Starting clip ID
+        count : int, optional
+            Number of clips to include at range, starting at clip ID, by default 1
+        """
+        assert count > 0, 'Count must be a positive intager'
+        self._send(f'playrange set: clip id: {clip_id} count: {count}')
+
+    def playrange_timecode(self, in_timecode: str, out_timecode: str) -> None:
+        """Set timeline playrange based based on in/out timecodes and move playhead to the in timecode.
+
+        Parameters
+        ----------
+        in_timecode : str
+            Starting Timecode
+        out_timecode : str
+            Ending Timecode
+        """
+        self._send(f'playrange set: in: {in_timecode} out: {out_timecode}')
+    
+    def playrange_frame(self, in_frame: int, out_frame: int) -> None:
+        """Set timeline playrange based based on frame numbers and move playhead to the start.
+
+        Parameters
+        ----------
+        in_frame : int
+            Starting Frame
+        out_frame : int
+            Ending Frame
+        """
+        self._send(f'playrange set: timeline in: {in_frame} timeline out: {out_frame}')
+    
+    def clear_playrange(self) -> None:
+        """Clear the timeline playrange.
+        """
+        self._send('playrange clear')
+
     def configure(
             self,
             *,
