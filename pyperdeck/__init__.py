@@ -359,7 +359,25 @@ class Hyperdeck:
             _record = f'record: name: {name}'
         
         self._send(_record)
-    
+
+    def spill(self, slot: int = 0) -> None:
+        """Spill recording from one slot to another.
+
+        Parameters
+        ----------
+        slot : int, optional
+            Slot to spill recording to, if not set, spills to the next available slot, by default 0
+        """
+        command = 'record spill'
+        if slot > 0:
+            command += f': slot id: {slot}'
+        self._send(command)
+
+    def stop(self) -> None:
+        """Stop recording or pause playback
+        """
+        self._send('stop')
+
     def play(self, speed: int = 100, loop: bool = False, single_clip: bool = False) -> None:
         """Play the timeline from the current timecode.
 
