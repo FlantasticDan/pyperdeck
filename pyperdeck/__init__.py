@@ -170,8 +170,9 @@ class Hyperdeck:
             if prop == 'slot id':
                 slot = value
                 break
-        self.slots[slot]._slot_info(body)
-        self._recording_time_remaining()
+        if slot != 'none':
+            self.slots[slot]._slot_info(body)
+            self._recording_time_remaining()
     
     def _recording_time_remaining(self) -> None:
         remaining_time = 0
@@ -189,8 +190,11 @@ class Hyperdeck:
             elif prop == 'slot id':
                 self.slot_id = int(value)
             elif prop == 'active slot':
-                self.active_slot = int(value)
-                self._send('clips get')
+                if value != 'none':
+                    self.active_slot = int(value)
+                    self._send('clips get')
+                else:
+                    self.active_slot = None
             elif prop == 'clip id':
                 self.clip_id = int(value)
             elif prop == 'single clip':
@@ -282,6 +286,8 @@ class Hyperdeck:
             self._clips_info(body)
         elif status[1] == 'disk list':
             self._disk_list(body)
+        elif status[1] == 'format ready':
+            self._format(body)
     
     def _device_info(self, body: List[str]) -> None:
         for field in body:
@@ -315,6 +321,10 @@ class Hyperdeck:
                 slot = value
                 break
         self.slots[slot]._disk_list(body)
+
+    def _format(self, body: List[str]) -> None:
+        format_token = body[0]
+        self._send(f'format: confirm: {format_token}')
 
     def preview(self) -> None:
         """Set the Hyperdeck to preview mode, which allows for clips to be recorded.
@@ -387,6 +397,11 @@ class Hyperdeck:
             command += f'audio codec: {audio_codec} '
         if command != 'configuration: ':
             self._send(command[:-1])
+
+    def format(self) -> None:
+        """Format the active slot to exFAT, this will delete all data on the media in that slot.
+        """        
+        self._send('format: prepare: exFAT')
 
     def reboot(self) -> None:
         """Reboot the Hyperdeck, reconnection happens automatically.
