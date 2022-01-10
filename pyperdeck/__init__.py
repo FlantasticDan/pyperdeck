@@ -362,6 +362,32 @@ class Hyperdeck:
 
         self._send(f'play: {_speed} {_loop} {_single_clip}')
 
+    def configure(self, *, video_input: str = None, audio_input: str = None, file_format: str = None, audio_codec: str = None) -> None:
+        """Change the configuration of the Hyperdeck.  Timecode, audio channels, record triggers, file naming, and genlock settings are unimplemented.
+
+        Parameters
+        ----------
+        video_input : str, optional
+            Source of video signal (one of SDI, HDMI, or component), by default unchanged
+        audio_input : str, optional
+            Source of the audio signal (one of embedded, XLR, or RCA), by default unchanged
+        file_format : str, optional
+            Recording file format/codec configuration for future recordings, by default unchanged
+        audio_codec : str, optional
+            Recording codec of the audio signal for future recordings, by default unchanged
+        """
+        command = 'configuration: '
+        if video_input:
+            command += f'video input: {video_input} '
+        if audio_input:
+            command += f'audio input: {audio_input} '
+        if file_format:
+            command += f'file format: {file_format} '
+        if audio_codec:
+            command += f'audio codec: {audio_codec} '
+        if command != 'configuration: ':
+            self._send(command[:-1])
+
     def reboot(self) -> None:
         """Reboot the Hyperdeck, reconnection happens automatically.
         """
