@@ -523,6 +523,16 @@ class Hyperdeck:
             self._send(f'play option: stop mode: {play_option}')
             self._send('play option')
 
+    def select_slot(self, slot_id: int) -> None:
+        """Change the active media slot.
+
+        Parameters
+        ----------
+        slot_id : int
+            ID of the slot to be selected as active
+        """
+        self._send(f'slot select: slot id: {slot_id}')
+
     def format(self) -> None:
         """Format the active slot to exFAT, this will delete all data on the media in that slot.
         """        
