@@ -43,3 +43,8 @@ class FileFormat:
         R_HQX = 'DNxHR_HQX 4Kp60'
         R_SQ = 'DNxHR_SQ'
         R_LB = 'DNxHR_LB'
+
+class StopMode:
+    LAST_FRAME = 'lastframe'
+    NEXT_FRAME = 'nextframe'
+    BLACK = 'black'

@@ -1,6 +1,6 @@
 import time
 import logging
-from os import linesep
+from os import linesep, stat
 from telnetlib import Telnet
 from threading import Thread
 from typing import List, Tuple, Dict
@@ -50,6 +50,7 @@ class Hyperdeck:
         self.timeline_playhead = 0
         self.input_video_format = None
         self.dynamic_range = None
+        self.stop_mode = None
 
         # Playrange Info
         self.timeline_in = 0
@@ -80,6 +81,7 @@ class Hyperdeck:
         self._send('transport info')
         self._send('playrange')
         self._send('clips get')
+        self._send('play option')
         
         self._notify('transport')
         self._notify('display timecode')
@@ -288,6 +290,8 @@ class Hyperdeck:
             self._disk_list(body)
         elif status[1] == 'format ready':
             self._format(body)
+        elif status[1] == 'play option info':
+            self._play_option(body)
     
     def _device_info(self, body: List[str]) -> None:
         for field in body:
@@ -325,6 +329,12 @@ class Hyperdeck:
     def _format(self, body: List[str]) -> None:
         format_token = body[0]
         self._send(f'format: confirm: {format_token}')
+
+    def _play_option(self, body: List[str]) -> None:
+        for field in body:
+            prop, value = field.split(': ')
+            if prop == 'stop mode':
+                self.stop_mode = value
 
     def preview(self) -> None:
         """Set the Hyperdeck to preview mode, which allows for clips to be recorded.
@@ -372,7 +382,15 @@ class Hyperdeck:
 
         self._send(f'play: {_speed} {_loop} {_single_clip}')
 
-    def configure(self, *, video_input: str = None, audio_input: str = None, file_format: str = None, audio_codec: str = None) -> None:
+    def configure(
+            self,
+            *,
+            video_input: str = None,
+            audio_input: str = None,
+            file_format: str = None,
+            audio_codec: str = None,
+            play_option: str = None,
+        ) -> None:
         """Change the configuration of the Hyperdeck.  Timecode, audio channels, record triggers, file naming, and genlock settings are unimplemented.
 
         Parameters
@@ -385,6 +403,8 @@ class Hyperdeck:
             Recording file format/codec configuration for future recordings, by default unchanged
         audio_codec : str, optional
             Recording codec of the audio signal for future recordings, by default unchanged
+        play_option : str
+            Sets the output frame when playback stops (one of lastframe, nextframe, or black), by default unchanged
         """
         command = 'configuration: '
         if video_input:
@@ -397,6 +417,10 @@ class Hyperdeck:
             command += f'audio codec: {audio_codec} '
         if command != 'configuration: ':
             self._send(command[:-1])
+        
+        if play_option:
+            self._send(f'play option: stop mode: {play_option}')
+            self._send('play option')
 
     def format(self) -> None:
         """Format the active slot to exFAT, this will delete all data on the media in that slot.
