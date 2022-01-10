@@ -377,6 +377,8 @@ class Hyperdeck:
         """Stop recording or pause playback
         """
         self._send('stop')
+        self._send('disk list')
+        self._send('clips get')
 
     def play(self, speed: int = 100, loop: bool = False, single_clip: bool = False) -> None:
         """Play the timeline from the current timecode.
@@ -399,6 +401,45 @@ class Hyperdeck:
             _single_clip = f'single clip: true'
 
         self._send(f'play: {_speed} {_loop} {_single_clip}')
+
+    def add_clip(self, name: str, *, clip_id: int = 0, in_timecode: str = '', out_timecode: str = '') -> None:
+        """Add a clip to the timeline.
+
+        Parameters
+        ----------
+        name : str
+            Name of the clip to add, inclusive of the file extension
+        clip_id : int, optional
+            Clip ID of the clip in the timeline this clip should be added before, by default 0 (end of the timeline)
+        in_timecode : str, optional
+            If adding only a portion of the clip, the beginning timecode of the portion, by default '' (start of clip)
+        out_timecode : str, optional
+            If adding only a portion of the clip, the ending timecode of the portion, by default '' (end of clip)
+        """
+        command = 'clips add: '
+        if clip_id > 0:
+            command += f'clip id: {clip_id} '
+        if in_timecode != '' and out_timecode != '':
+            command += f'in: {in_timecode} out: {out_timecode} '
+        command += f'name: {name}'
+        self._send(command)
+        self._send('clips get')
+
+    def remove_clip(self, clip_id: int) -> None:
+        """Remove a clip from the timeline.
+
+        Parameters
+        ----------
+        clip_id : int
+            Clip ID of the clip to remove, the first clip on the timeline is ID 1.
+        """
+        self._send(f'clips remove: clip id: {clip_id}')
+        self._send('clips get')
+    
+    def clear_clips(self) -> None:
+        """Clear all clips from the timeline
+        """
+        self._send('clips clear')
 
     def playrange_clip(self, clip_id: int, count: int = 1) -> None:
         """Set timeline playrange based based on clip IDs and move playhead to the start.
