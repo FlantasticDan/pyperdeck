@@ -1,6 +1,6 @@
 import time
 import logging
-from os import linesep, stat
+from os import linesep
 from telnetlib import Telnet
 from threading import Thread
 from typing import List, Tuple, Dict
@@ -8,14 +8,14 @@ from typing import List, Tuple, Dict
 from ._internals import Slot, Timeline
 from .timecode import parse_framerate
 
-class Hyperdeck:
+class Hyperdeck:    
     """Blackmagic Design Hyperdeck Control Interface
 
     Parameters
     ----------
     ip : str
         Local IP Address of the Hyperdeck
-    """    
+    """
     def __init__(self, ip: str) -> None:     
         self.ip = ip
         self.connection = Telnet(ip, 9993)
@@ -25,55 +25,103 @@ class Hyperdeck:
         self._reader_thread.start()
 
         # Device Info
-        self.protocol_version = None
-        self.model = None
-        self.unique_id = None
-        self.slot_count = 0
-        self.software_version = None
-
+        self.model = None # type: str
+        """Model of Hyperdeck (ex. 'HyperDeck Studio HD Plus' )
+        """        
+        self.protocol_version = None # type: str
+        """Hyperdeck Ethernet Protocol Version (ex. '1.12' )
+        """
+        self.software_version = None # type: str
+        """Hyperdeck Software Version (ex. '8.0.2' )
+        """        
+        self.unique_id = None # type: str
+        """Generated unique identifier for each Hyperdeck, persists across boots and network changes. (ex. '7c2e0d1443d2' )
+        """        
+        self.slot_count = 0 # type: int
+        """Total number of media slots on the Hyperdeck, not necessarily the number of slots available for use.
+        """        
+        
         # Slot Info
         self.slots = {} # type: Dict[str, Slot]
-        self.remaining_time = 0 # recording time remaining in seconds
+        """Dictionary of Slot objects for each media slot, keyed by each slot's ID.
+        """        
+        self.remaining_time = 0
+        """Recording time (in seconds) remaining on the active media slot with the current configuration settings.
+        """        
 
         # Transport Info
-        self.status = None
-        self.speed = 0
-        self.slot_id = 0
-        self.active_slot = 0
-        self.clip_id = 0
-        self.single_clip = False
-        self.display_timecode = None
-        self.timecode = None
-        self.video_format = None
-        self.framerate = 0
-        self.loop = False
-        self.timeline_playhead = 0
-        self.input_video_format = None
-        self.dynamic_range = None
-        self.stop_mode = None
+        self.status = None # type: str
+        """Status of the Hyperdeck, one of 'preview', 'stopped', 'play', 'forward', 'rewind', 'jog', 'shuttle', 'record'.
+        """        
+        self.speed = 0 # type: int
+        """Playback speed as a percentage, between -5000 and 5000
+        """        
+        self.slot_id = 0 # type: int
+        """Current active media slot, or `0` if no slot is active.
+        """        
+        self.active_slot = 0 # type: int
+        self.clip_id = 0 # type: int
+        """Clip ID of the clip the timeline playhead is currently within.
+        """        
+        self.single_clip = None # type: bool
+        """Timeline playback mode, `True` indicates playback will only play within the current clip.
+        """        
+        self.display_timecode = None # type: str
+        """Timecode shown on the front of the Hyperdeck
+        """        
+        self.timecode = None # type: str
+        """Timecode within the current timeline for playback or the clip for record (from Blackmagic's documentation, meaning unclear)
+        """        
+        self.video_format = None # type: str
+        """Video format of the output stream, one of 'NTSC', 'PAL', 'NTSCp', 'PALp', '720p50', '720p5994', '720p60', '1080p23976', '1080p24', '1080p25', '1080p2997', '1080p30', '1080i50', '1080i5994', '1080i60', '4Kp23976', '4Kp24', '4Kp25', '4Kp2997', '4Kp30', '4Kp50', '4Kp5994', '4Kp60'
+        """        
+        self.framerate = 0 # type: int
+        """Frames per seconds of the output stream, commonly `24`, `25`, `30`, `50`, or `60`.
+        """        
+        self.loop = None # type: bool
+        """Playback loop state, if `True`, playback loops back to the beginning when it reaches the end.
+        """        
+        self.timeline_playhead = 0 # type: int
+        """Current frame number of the playhead on the timeline, the first frame of the timeline is frame `1`.
+        """        
+        self.input_video_format = None # type: str
+        """Video format of the input stream, one of 'NTSC', 'PAL', 'NTSCp', 'PALp', '720p50', '720p5994', '720p60', '1080p23976', '1080p24', '1080p25', '1080p2997', '1080p30', '1080i50', '1080i5994', '1080i60', '4Kp23976', '4Kp24', '4Kp25', '4Kp2997', '4Kp30', '4Kp50', '4Kp5994', '4Kp60'
+        """ 
+        self.dynamic_range = None # type: str
+        """Dynamic range setting of the Hyperdeck, one of 'off', 'Rec709', 'Rec2020_SDR', 'HLG', 'ST2084_300', 'ST2084_500', 'ST2084_800', 'ST2084_1000', 'ST2084_2000', 'ST2084_4000', 'ST2048' or 'none'.
+        """        
+        self.stop_mode = None # type: str
+        """Behavior of the output stream when the playhead is stopped, one of `lastframe`, `nextframe`, or `black`.
+        """        
 
         # Playrange Info
-        self.timeline_in = 0
-        self.timeline_out = 0
+        self.timeline_in = 0 # type: int
+        """Frame number of the timeline in point, or `0` if there is no active range
+        """        
+        self.timeline_out = 0 # type: int
+        """Frame number of the timeline out point, or `0` if there is no active range
+        """        
 
         # Configuration
-        self.audio_input = None
-        self.audio_mapping = 0
-        self.video_input = None
-        self.file_format = None
-        self.audio_codec = None
-        self.timecode_input = None
-        self.timecode_output = None
-        self.timecode_preference = None
-        self.timecode_preset = None
-        self.audio_input_channels = 0
-        self.record_trigger = None
-        self.record_prefix = None
-        self.append_timestamp = False
-        self.genlock_input_resync = False
+        self.audio_input = None # type: str
+        self.audio_mapping = 0 # type: int
+        self.video_input = None # type: str
+        self.file_format = None # type: str
+        self.audio_codec = None # type: str
+        self.timecode_input = None # type: str
+        self.timecode_output = None # type: str
+        self.timecode_preference = None # type: str
+        self.timecode_preset = None # type: str
+        self.audio_input_channels = 0 # type: int
+        self.record_trigger = None # type: str
+        self.record_prefix = None # type: str
+        self.append_timestamp = False # type: bool
+        self.genlock_input_resync = False # type: bool
 
         # Timeline
-        self.timeline = Timeline()
+        self.timeline = Timeline() # type: Timeline
+        """Currently active timeline object.
+        """        
 
     def _startup(self) -> None:
         self._send('device info')
@@ -403,7 +451,7 @@ class Hyperdeck:
         self._send(f'play: {_speed} {_loop} {_single_clip}')
 
     def add_clip(self, name: str, *, clip_id: int = 0, in_timecode: str = '', out_timecode: str = '') -> None:
-        """Add a clip to the timeline.
+        """Add a clip to the timeline.  Note that in/out timecodes are based on the clip's embedded timecode, and doesn't always begin at 00:00:00:00.
 
         Parameters
         ----------

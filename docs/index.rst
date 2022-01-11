@@ -1,14 +1,13 @@
 Pyperdeck
 =====================================
-Python interface for Blackmagic Design Hyperdeck recorders.
-
-.. automodule:: pyperdeck
-    :members:
+Python implementation of of the Blackmagic HyperDeck Ethernet Protocol which allows for network based control of HyperDeck Studio Models with a built in ethernet connection.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
+   intro
+   api
    utilities
 
 .. toctree::

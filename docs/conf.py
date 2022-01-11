@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'pyperdeck'
-copyright = '2021, Daniel Flanagan'
+copyright = '2022, Daniel Flanagan'
 author = 'Daniel Flanagan'
 
 
@@ -30,8 +30,11 @@ author = 'Daniel Flanagan'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
+    'numpydoc'
 ]
 autodoc_member_order = 'bysource'
+numpydoc_show_class_members = False
+numpydoc_class_members_toctree = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

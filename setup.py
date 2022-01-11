@@ -5,9 +5,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyperdeck",
-    version="0.0.0",
+    version="0.0.1",
     author="Daniel Flanagan",
-    description="Python interface for Blackmagic Design Hyperdeck recorders.",
+    description="Python interface for Blackmagic Design HyperDeck recorders.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/FlantasticDan/pyperdeck",
@@ -20,6 +20,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=setuptools.find_packages(),
-    python_requires=">=3.9",
+    python_requires=">=3.7",
     install_requires=[]
 )

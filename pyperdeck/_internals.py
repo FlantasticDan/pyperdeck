@@ -4,14 +4,14 @@ from .timecode import Timecode, parse_framerate
 
 class Slot:
     """Low Level Hyperdeck Media Slot Interface
+
+    Parameters
+    ----------
+    id : int
+        Hyperdeck Hardware Slot ID
     """    
     def __init__(self, id: int) -> None:
         """Initialize a Media Slot Interface
-
-        Parameters
-        ----------
-        id : int
-            Hyperdeck Hardware Slot ID
         """        
         self.id = id
 
