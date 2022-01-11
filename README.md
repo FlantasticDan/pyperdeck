@@ -7,7 +7,7 @@ pip install pyperdeck
 ```
 
 ## Documentation
-A full API reference and small walkthrough is available on Read the Docs.
+A full API reference and small walkthrough is available on [Read the Docs](http://pyperdeck.readthedocs.io/).
 
 ## Example
 ```python

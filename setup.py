@@ -13,6 +13,7 @@ setuptools.setup(
     url="https://github.com/FlantasticDan/pyperdeck",
     project_urls={
         "Bug Tracker": "https://github.com/FlantasticDan/pyperdeck/issues",
+        "Documentation": "http://pyperdeck.readthedocs.io/"
     },
     classifiers=[
         "Programming Language :: Python :: 3",
