@@ -1,4 +1,8 @@
 # pyperdeck
+[![Documentation Status](https://readthedocs.org/projects/pyperdeck/badge/?version=latest)](https://pyperdeck.readthedocs.io/en/latest/?badge=latest) [![PyPI version](https://badge.fury.io/py/pyperdeck.svg)](https://badge.fury.io/py/pyperdeck)
+
+![pyperdeck](https://user-images.githubusercontent.com/37907774/148882794-0019602c-269b-40dc-a38c-854f9e6ea37c.png)
+
 Python interface for Blackmagic Design HyperDeck recorders.
 
 ## Installation
