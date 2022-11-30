@@ -16,9 +16,10 @@ class Hyperdeck:
     ip : str
         Local IP Address of the Hyperdeck
     """
-    def __init__(self, ip: str) -> None:     
+    def __init__(self, ip: str, in_cmd_timeout: int = 5) -> None:     
         self.ip = ip
-        self.connection = Telnet(ip, 9993)
+        self.cmd_timeout = in_cmd_timeout
+        self.connection = Telnet(ip, 9993, self.cmd_timeout)
         self.logger = logging.getLogger(__name__)
 
         self._reader_thread = Thread(target=self._reader)
@@ -156,7 +157,7 @@ class Hyperdeck:
             except Exception as e:
                 self.logger.error(e)
                 time.sleep(3)
-                self.connection = Telnet(self.ip, 9993)
+                self.connection = Telnet(self.ip, 9993, self.cmd_timeout)
                 self._send('ping')
     
     def _send(self, command: str) -> None:
