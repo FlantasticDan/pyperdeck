@@ -661,8 +661,9 @@ class Hyperdeck:
             file_format: str = None,
             audio_codec: str = None,
             play_option: str = None,
+            audio_input_channels: int = None,
         ) -> None:
-        """Change the configuration of the Hyperdeck.  Timecode, audio channels, record triggers, file naming, and genlock settings are unimplemented.
+        """Change the configuration of the Hyperdeck.  Timecode, record triggers, file naming, and genlock settings are unimplemented.
 
         Parameters
         ----------
@@ -674,6 +675,8 @@ class Hyperdeck:
             Recording file format/codec configuration for future recordings, by default unchanged
         audio_codec : str, optional
             Recording codec of the audio signal for future recordings, by default unchanged
+        audio input channels : int, optional
+            Number of audio channels to record, valid values are 2 4 8 16, by default unchanged
         play_option : str
             Sets the output frame when playback stops (one of lastframe, nextframe, or black), by default unchanged
         """
@@ -686,6 +689,8 @@ class Hyperdeck:
             command += f'file format: {file_format} '
         if audio_codec:
             command += f'audio codec: {audio_codec} '
+        if audio_input_channels:
+            command += f'audio input channels: {audio_input_channels} '
         if command != 'configuration: ':
             self._send(command[:-1])
         
